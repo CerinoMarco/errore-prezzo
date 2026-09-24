@@ -252,3 +252,35 @@ domain      = "euronics.it"
 sitemap_url = "https://www.euronics.it/sitemap_index.xml"  # /sitemap.xml da 404
 enabled     = true
 max_products = 25
+
+[[store]]
+name    = "MyWineStore"         # enoteca online
+type    = "woocommerce"
+domain  = "mywinestore.it"
+enabled = true
+
+[[store]]
+name    = "Light Inspiration"   # illuminazione/lampadari, alcuni pezzi alto scontrino
+type    = "woocommerce"
+domain  = "lightinspiration.it"
+enabled = true
+
+[[store]]
+name    = "Italian Light Store" # illuminazione/lampadari design
+type    = "woocommerce"
+domain  = "italianlightstore.com"
+enabled = true
+
+[[store]]
+name    = "Pinalli"             # profumeria/cosmetici
+type    = "jsonld"
+domain  = "pinalli.it"
+enabled = true
+max_products = 25
+
+[[store]]
+name    = "Negozio del Vino"    # enoteca online
+type    = "jsonld"
+domain  = "negoziodelvino.it"
+enabled = true
+max_products = 25

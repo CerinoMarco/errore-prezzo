@@ -11,7 +11,7 @@ name: Monitor errori di prezzo
 
 on:
   schedule:
-    - cron: "*/15 * * * *"  # ogni 15 minuti: con 32 negozi (24 Shopify a
+    - cron: "*/15 * * * *"  # ogni 15 minuti: con ~35 negozi (Shopify a
                              # catalogo grande + 5 jsonld, 1 richiesta HTTP a
                              # prodotto) un giro completo misurato in locale
                              # dura ~10 minuti; 15 min lascia margine reale

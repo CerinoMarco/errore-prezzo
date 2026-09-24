@@ -39,7 +39,7 @@ dal PC acceso) ma **GitHub Actions**: un cron gratuito ospitato da GitHub, in
 `.github/workflows/monitor.yml`. Ogni 15 minuti fa un giro (`--once`) e si
 riaddormenta — niente processo sempre acceso da pagare, niente VPS.
 
-**Perche' 15 minuti e non i 90 secondi del loop locale:** con 32 negozi (24
+**Perche' 15 minuti e non i 90 secondi del loop locale:** con ~35 negozi (i 24
 Shopify a catalogo grande + i nuovi adattatori `jsonld`, che fanno 1 richiesta
 HTTP per prodotto) un giro completo misurato in locale dura **circa 10
 minuti**: GitHub Actions ha un timeout duro per ogni run (qui 14 minuti), il
@@ -50,7 +50,7 @@ Se togli negozi pesanti o abbassi `max_pages`/`max_products`, puoi stringere
 il cron.
 
 **Perche' repo pubblico:** i repository pubblici hanno minuti Actions
-illimitati gratis; quelli privati solo 2000 min/mese, che con ~32 negozi e
+illimitati gratis; quelli privati solo 2000 min/mese, che con ~35 negozi e
 giri da ~10 minuti si esaurirebbero in pochi giorni. Nel repo pubblico non
 finisce **nessun segreto**: `TG_TOKEN`/`TG_CHAT` vivono solo nei GitHub
 Secrets, mai nel codice (`.env` resta escluso da `.gitignore`).
