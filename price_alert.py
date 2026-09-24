@@ -74,8 +74,7 @@ DEFAULT_SETTINGS = {
     "alto_rischio_drop": 0.80, # oltre questo drop l'errore e' spesso annullabile
     "ema_alpha": 0.30,         # peso della nuova osservazione nella media mobile
     "trust_after": 3,          # letture normali prima di fidarsi della baseline
-    "heartbeat_hours": [15],   # ore locali per il ping "tutto ok" su Telegram (oltre all'avvio)
-    "max_workers": 8,          # richieste parallele
+    "heartbeat_every_hours": 1,  # ping "tutto ok" su Telegram ogni tot ore (0 = disattivato)
 }
 
 
@@ -604,6 +603,17 @@ def format_alert(a: dict) -> str:
     return "\n".join(lines)
 
 
+def heartbeat_due(state: dict, every_hours: float, now: datetime) -> bool:
+    """True se e' passato abbastanza tempo dall'ultimo ping "tutto ok".
+    Funziona identico nel loop locale e nei giri singoli (--once, es. su
+    GitHub Actions): lo stato e' condiviso, non serve un processo sempre
+    acceso ne' un orario del giorno preciso."""
+    last = state.get("hb_last")
+    if last is None:
+        return True
+    return (now - parse_iso(last)) >= timedelta(hours=every_hours)
+
+
 def notify(alert: dict) -> None:
     text = format_alert(alert)
     token = os.environ.get("TG_TOKEN", "").strip()
@@ -855,6 +865,20 @@ def run_once(config: dict, state: dict, settings: dict) -> int:
         else:
             print(f"[{name}] nessuna modifica")
 
+    hb_every = settings.get("heartbeat_every_hours", 0)
+    if hb_every > 0:
+        if heartbeat_due(state, hb_every, now):
+            text = (f"\U0001F7E2 <b>Monitor attivo</b> — {len(all_stores)} negozi "
+                     f"sorvegliati, {n_alerts} alert in questo giro. "
+                     f"Ultimo controllo: {now:%d/%m %H:%M} UTC.")
+            ok, err = _tg_send(text)
+            if ok or err == "no-credentials":
+                if err == "no-credentials":
+                    print(f"\n[heartbeat - dry-run, nessun TG_TOKEN/TG_CHAT]\n{strip_html(text)}")
+                state["hb_last"] = now_iso()
+            else:
+                print(f"[heartbeat ERRORE] {err}", file=sys.stderr)
+
     save_state(state)
     return n_alerts
 
@@ -892,6 +916,16 @@ def selftest() -> int:
     check(parse_price("") is None, "parse_price: stringa vuota -> None")
     check(parse_price("n/a") is None, "parse_price: testo non numerico -> None")
     check(parse_price("-45,50") == -45.5, "parse_price: negativo")
+
+    # --- heartbeat_due: funziona sia nel loop locale che nei giri --once ---
+    now = datetime.now(timezone.utc)
+    check(heartbeat_due({}, 1, now) is True,
+          "heartbeat: nessun invio precedente -> dovuto subito")
+    check(heartbeat_due({"hb_last": now_iso()}, 1, now) is False,
+          "heartbeat: appena mandato -> non ancora dovuto")
+    old = (now - timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    check(heartbeat_due({"hb_last": old}, 1, now) is True,
+          "heartbeat: mandato 2h fa con intervallo 1h -> dovuto")
 
     # --- Regime normale (baseline gia' consolidata) ---
     st = {"baseline": {}, "alerts": {}, "http": {}}
@@ -980,8 +1014,9 @@ def main() -> None:
     print(f"Monitor avviato · poll ogni {settings['poll_seconds']}s "
           f"· Ctrl+C per fermare.")
     n_stores = sum(1 for s in config.get("store", []) if s.get("enabled"))
-    hb_hours = settings.get("heartbeat_hours", []) or []
     # Heartbeat di AVVIO: la conferma "della mattina" quando si accende il PC.
+    # Quello periodico ("tutto ok" ogni heartbeat_every_hours) lo manda gia'
+    # run_once() ad ogni giro, quindi vale sia qui sia su GitHub Actions.
     _tg_send(f"🟢 <b>Monitor avviato</b> — sorveglio {n_stores} negozi. Ti scrivo "
              f"solo se trovo un errore, o per il check di controllo.")
     last_mail = 0.0
@@ -994,14 +1029,6 @@ def main() -> None:
                 if m:
                     print(f"[mail] {m} alert Amazon inoltrati sul bot")
                 last_mail = time.time()
-            # Heartbeat PROGRAMMATO: una volta per ora-slot (es. le 15).
-            now_local = datetime.now()
-            slot = f"{now_local:%Y-%m-%d}-{now_local.hour}"
-            if now_local.hour in hb_hours and state.get("hb_slot") != slot:
-                _tg_send(f"🟢 <b>Tutto ok</b> — monitor attivo, {n_stores} negozi, "
-                         f"nessun problema. ({now_local:%H:%M})")
-                state["hb_slot"] = slot
-                save_state(state)
             time.sleep(max(5, settings["poll_seconds"] - (time.time() - t0)))
     except KeyboardInterrupt:
         save_state(state)

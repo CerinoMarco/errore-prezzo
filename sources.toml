@@ -21,7 +21,7 @@ min_abs_saving    = 20.0   # <-- IL TUO NUMERO EUR (almeno 20 EUR di sconto)
 alto_rischio_drop = 0.80   # oltre questo calo l'errore e' spesso annullabile (flag ALTO)
 ema_alpha         = 0.30   # reattivita' della baseline (media mobile)
 trust_after       = 3      # letture normali prima di fidarsi della baseline (cold-start)
-heartbeat_hours   = [15]    # ping "tutto ok" su Telegram a queste ore locali (oltre all'avvio); [] per spegnerlo
+heartbeat_every_hours = 1   # ping "tutto ok" su Telegram ogni tot ore (oltre all'avvio); 0 per spegnerlo
 
 # =====================================================================
 # ACCESI  -  i 5 ad alto valore (alto scontrino, meno rumore)

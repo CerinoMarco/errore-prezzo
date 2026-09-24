@@ -200,6 +200,14 @@ Ogni alert porta un flag **rischio annullamento**:
   quindi il venditore lo annulla spesso prima di spedire. Da tentare, ma senza
   immobilizzarci aspettative.
 
+**"È ancora vivo?"** Oltre agli alert, ogni `heartbeat_every_hours` (default 1,
+in `sources.toml`) arriva un ping **"Monitor attivo"** su Telegram con quanti
+negozi sorveglia e quanti alert nell'ultimo giro — così un silenzio prolungato
+segnala un problema invece di essere indistinguibile da "nessun errore
+trovato". Funziona identico nel loop locale e nei giri `--once` di GitHub
+Actions: lo stato (`hb_last`) e' condiviso, non serve un processo sempre
+acceso. `heartbeat_every_hours = 0` lo spegne.
+
 ---
 
 ## Limiti onesti
