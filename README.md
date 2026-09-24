@@ -145,10 +145,20 @@ max_products = 100          # opzionale
 sitemap_url  = "https://negozio.it/sitemap_index.xml"   # opzionale, se non e' /sitemap.xml
 ```
 
-**Limite onesto:** su cataloghi enormi (migliaia di URL nella sitemap
-prodotto) il monitor legge sempre lo stesso primo blocco di `max_products`
-URL ad ogni giro, non ruota sul resto del catalogo — copertura parziale ma
-stabile, non casuale.
+Le sitemap compresse (`.xml.gz`, comuni sui cataloghi molto grandi) sono
+gestite automaticamente.
+
+**Limiti onesti:**
+- Su cataloghi enormi (migliaia di URL nella sitemap prodotto) il monitor
+  legge sempre lo stesso primo blocco di `max_products` URL ad ogni giro, non
+  ruota sul resto del catalogo — copertura parziale ma stabile, non casuale.
+- Se il sito carica i dati prodotto via JavaScript (pagina "vuota" lato
+  server, solo `WebSite`/`BreadcrumbList` nel JSON-LD statico, il prezzo
+  arriva via chiamata AJAX dopo il caricamento) l'adattatore non funziona:
+  servirebbe un browser headless, che non vogliamo aggiungere (rompe zero
+  dipendenze e "sempre gratis"). Verificato es. su Unieuro: sitemap e
+  compressione lette correttamente, ma nessun dato Product nell'HTML statico
+  -> scartato.
 
 Nessuno di questi tre ha bisogno di un servizio di scraping esterno o a
 pagamento: sono tutti endpoint pubblici del negozio stesso, letti con la sola

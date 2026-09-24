@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import argparse
 import email
+import gzip
 import imaplib
 import json
 import os
@@ -237,8 +238,12 @@ def http_get_json(url: str, http_state: dict):
 
 
 def http_get_text(url: str, http_state: dict) -> str:
-    """Come _http_fetch, ma ritorna testo (per HTML/XML, es. sitemap)."""
+    """Come _http_fetch, ma ritorna testo (per HTML/XML, es. sitemap). Le
+    sitemap di cataloghi grandi sono spesso pubblicate compresse (.xml.gz):
+    decomprime prima di decodificare."""
     raw = _http_fetch(url, http_state, "text/html,application/xml;q=0.9,*/*;q=0.8")
+    if url.lower().endswith(".gz"):
+        raw = gzip.decompress(raw)
     return raw.decode("utf-8", "replace")
 
 
@@ -438,8 +443,9 @@ def fetch_jsonld_sitemap(store: dict, http_state: dict) -> list[Product]:
         return _sitemap_locs(text)
 
     locs = fetch_locs(sitemap_url)
-    if locs and all(l.lower().endswith(".xml") for l in locs):
-        # sitemap-index: segui solo i sotto-sitemap che sembrano di prodotto.
+    if locs and all(l.lower().endswith((".xml", ".xml.gz")) for l in locs):
+        # sitemap-index (anche compresso): segui solo i sotto-sitemap che
+        # sembrano di prodotto.
         product_children = [l for l in locs if "product" in l.lower()]
         targets = (product_children or locs)[:5]
         product_urls: list[str] = []

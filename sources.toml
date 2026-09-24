@@ -244,3 +244,11 @@ type    = "jsonld"
 domain  = "utensileriaonline.it"
 enabled = true
 max_products = 30
+
+[[store]]
+name        = "Euronics"        # elettrodomestici/elettronica, grande catena
+type        = "jsonld"
+domain      = "euronics.it"
+sitemap_url = "https://www.euronics.it/sitemap_index.xml"  # /sitemap.xml da 404
+enabled     = true
+max_products = 25
