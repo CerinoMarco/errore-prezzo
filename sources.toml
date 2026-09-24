@@ -284,3 +284,33 @@ type    = "jsonld"
 domain  = "negoziodelvino.it"
 enabled = true
 max_products = 25
+
+[[store]]
+name    = "Gamestart"           # videogiochi/console
+type    = "woocommerce"
+domain  = "gamestart.it"
+enabled = true
+
+[[store]]
+name    = "Extrasound"          # hi-fi/home cinema, mediana ~500 EUR, fino a 14600
+type    = "woocommerce"
+domain  = "extrasound.it"
+enabled = true
+
+[[store]]
+name    = "FaceTheSound"        # hi-fi/audio professionale, mediana ~690 EUR
+type    = "woocommerce"
+domain  = "facethesound.com"
+enabled = true
+
+[[store]]
+name    = "Mister Electronic"   # orologi/gioielli, mediana ~495 EUR
+type    = "woocommerce"
+domain  = "misterelectronic.it"
+enabled = true
+
+[[store]]
+name    = "Toscano Gioielli"    # orologi/gioielli, mediana ~770 EUR
+type    = "woocommerce"
+domain  = "toscanogioielli.it"
+enabled = true
