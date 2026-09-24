@@ -36,12 +36,22 @@ anomalo. Tu poi compri **a mano**: niente auto-checkout, niente evasione anti-bo
 
 Il modo per farlo girare sempre non e' piu' `avvio_automatico.vbs` (dipende
 dal PC acceso) ma **GitHub Actions**: un cron gratuito ospitato da GitHub, in
-`.github/workflows/monitor.yml`. Ogni 5 minuti fa un giro (`--once`) e si
+`.github/workflows/monitor.yml`. Ogni 15 minuti fa un giro (`--once`) e si
 riaddormenta — niente processo sempre acceso da pagare, niente VPS.
 
+**Perche' 15 minuti e non i 90 secondi del loop locale:** con 32 negozi (24
+Shopify a catalogo grande + i nuovi adattatori `jsonld`, che fanno 1 richiesta
+HTTP per prodotto) un giro completo misurato in locale dura **circa 10
+minuti**: GitHub Actions ha un timeout duro per ogni run (qui 14 minuti), il
+loop locale invece no (se un giro dura di piu' semplicemente parte il
+successivo appena finito). 15 minuti e' il compromesso onesto: piu' lento del
+loop locale nel catturare un errore-prezzo fugace, ma sempre attivo e gratis.
+Se togli negozi pesanti o abbassi `max_pages`/`max_products`, puoi stringere
+il cron.
+
 **Perche' repo pubblico:** i repository pubblici hanno minuti Actions
-illimitati gratis; quelli privati solo 2000 min/mese, che con ~30 negozi e un
-giro ogni 5 minuti si esaurirebbero in pochi giorni. Nel repo pubblico non
+illimitati gratis; quelli privati solo 2000 min/mese, che con ~32 negozi e
+giri da ~10 minuti si esaurirebbero in pochi giorni. Nel repo pubblico non
 finisce **nessun segreto**: `TG_TOKEN`/`TG_CHAT` vivono solo nei GitHub
 Secrets, mai nel codice (`.env` resta escluso da `.gitignore`).
 
@@ -65,14 +75,16 @@ resta sempre **un solo commit**, non cresce mai.
    (Gli stessi valori del tuo `.env` locale.)
 3. **Primo avvio:** tab *Actions* del repo -> workflow "Monitor errori di
    prezzo" -> *Run workflow* (trigger manuale, non serve aspettare il cron).
-   Controlla che il run finisca verde. Da li' in poi parte da solo ogni 5
+   Controlla che il run finisca verde. Da li' in poi parte da solo ogni 15
    minuti, senza bisogno del PC acceso.
 
-**Se il numero di negozi cresce** e un giro rischia di superare gli 8 minuti
-(il `timeout-minutes` del job), alza il cron a `*/10 * * * *` nel workflow
-invece di far girare i negozi in parallelo: in parallelo si rischiano i
-429/403 e scritture concorrenti sullo stesso `state.json` — il motore e'
-pensato per essere sequenziale, di proposito.
+**Se il numero di negozi cresce ancora** e un giro rischia di superare i 14
+minuti (il `timeout-minutes` del job), allunga ulteriormente il cron invece
+di far girare i negozi in parallelo: in parallelo si rischiano i 429/403 (gia'
+visti durante lo sviluppo: bastano poche run ravvicinate dallo stesso IP per
+farli scattare su meta' dei negozi Shopify) e scritture concorrenti sullo
+stesso `state.json` — il motore e' pensato per essere sequenziale, di
+proposito.
 
 `avvia.bat` / `avvio_automatico.vbs` restano nel repo ma sono ora opzionali:
 utili solo per un loop locale di test, non piu' necessari per il

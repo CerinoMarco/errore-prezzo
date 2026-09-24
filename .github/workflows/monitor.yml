@@ -11,7 +11,10 @@ name: Monitor errori di prezzo
 
 on:
   schedule:
-    - cron: "*/5 * * * *"   # ogni 5 minuti: il minimo pratico su GH Actions
+    - cron: "*/15 * * * *"  # ogni 15 minuti: con 32 negozi (24 Shopify a
+                             # catalogo grande + 5 jsonld, 1 richiesta HTTP a
+                             # prodotto) un giro completo misurato in locale
+                             # dura ~10 minuti; 15 min lascia margine reale
   workflow_dispatch: {}      # trigger manuale da tab "Actions" per i test
 
 concurrency:
@@ -24,7 +27,7 @@ permissions:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 14
     steps:
       - name: Checkout codice (main)
         uses: actions/checkout@v4
@@ -52,6 +55,10 @@ jobs:
       - name: Salva stato aggiornato (branch 'state')
         if: always()
         run: |
+          if [ ! -f state.json ]; then
+            echo "state.json assente (il giro non e' arrivato a salvare, es. timeout): niente da salvare, riprovo al prossimo giro."
+            exit 0
+          fi
           git config user.name "price-monitor-bot"
           git config user.email "actions@users.noreply.github.com"
           blob=$(git hash-object -w state.json)
