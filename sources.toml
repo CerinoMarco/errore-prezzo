@@ -1,0 +1,246 @@
+# =====================================================================
+# sources.toml - configurazione del monitor errori di prezzo
+# =====================================================================
+# Modifichi SOLO questo file. Il motore (price_alert.py) non si tocca.
+#
+# REGOLA (semplice): un alert scatta se il calo e' >= 50 EUR  E  >= 40%.
+# Vale per QUALUNQUE categoria: e' il filtro a fare il lavoro.
+#   min_abs_saving  -> quanti EUR minimo di sconto
+#   anomaly_drop    -> quale percentuale minima  (0.40 = -40%)
+# Troppi alert? anomaly_drop a 0.50.  Troppo pochi? a 0.30.
+#
+# IMPORTANTE (rate-limit): Shopify limita quante richieste /products.json
+# accetta da uno stesso IP in poco tempo. Il monitor va SEQUENZIALE (un
+# negozio per volta, con pausa). Tieni pochi negozi accesi: se ne accendi
+# troppi, riappaiono i 429. Meglio 5 puliti che 15 che si bloccano.
+
+[settings]
+poll_seconds      = 90     # ripassa le fonti ogni 90s
+anomaly_drop      = 0.40   # <-- IL TUO NUMERO %  (0.40 = -40%)
+min_abs_saving    = 20.0   # <-- IL TUO NUMERO EUR (almeno 20 EUR di sconto)
+alto_rischio_drop = 0.80   # oltre questo calo l'errore e' spesso annullabile (flag ALTO)
+ema_alpha         = 0.30   # reattivita' della baseline (media mobile)
+trust_after       = 3      # letture normali prima di fidarsi della baseline (cold-start)
+heartbeat_hours   = [15]    # ping "tutto ok" su Telegram a queste ore locali (oltre all'avvio); [] per spegnerlo
+
+# =====================================================================
+# ACCESI  -  i 5 ad alto valore (alto scontrino, meno rumore)
+# =====================================================================
+
+[[store]]
+name    = "Clima Convenienza"   # climatizzatori, alto scontrino
+type    = "shopify"
+domain  = "climaconvenienza.it"
+enabled = true
+max_pages = 8
+
+[[store]]
+name    = "Climamarket"         # climatizzatori
+type    = "shopify"
+domain  = "climamarket.it"
+enabled = true
+max_pages = 8
+
+[[store]]
+name    = "Workshop Italy"      # officina + utensili
+type    = "shopify"
+domain  = "workshopitaly.net"
+enabled = true
+max_pages = 8
+
+[[store]]
+name    = "E-bike World"        # bici elettriche, mediana ~4400 EUR
+type    = "shopify"
+domain  = "ebikeworldsrl.it"
+enabled = true
+max_pages = 8
+
+[[store]]
+name    = "Napoli Elettrica"    # bici elettriche/mobilita', mediana ~2800 EUR
+type    = "shopify"
+domain  = "napolielettrica.it"
+enabled = true
+max_pages = 8
+
+# =====================================================================
+# SPENTI  -  verificati e pronti: metti enabled = true per riaccenderli,
+# ma UNO ALLA VOLTA, controllando che non tornino i 429.
+# =====================================================================
+
+[[store]]
+name    = "Punto Foto"          # fotografia/video (catalogo grande = tante pagine)
+type    = "shopify"
+domain  = "puntofotonline.com"
+enabled = true
+max_pages = 8
+
+[[store]]
+name    = "Foto Ema"            # fotografia
+type    = "shopify"
+domain  = "fotoema.it"
+enabled = true
+
+[[store]]
+name    = "Intersport Italia"   # sport/running
+type    = "shopify"
+domain  = "intersport.it"
+enabled = true
+
+[[store]]
+name    = "Antonioli"           # lusso (saldi profondi = rumore)
+type    = "shopify"
+domain  = "antonioli.eu"
+enabled = true
+
+[[store]]
+name    = "Velasca"             # calzature (moda = saldi)
+type    = "shopify"
+domain  = "velasca.com"
+enabled = true
+
+[[store]]
+name    = "E. Marinella"        # cravatte lusso (moda = saldi)
+type    = "shopify"
+domain  = "emarinella.eu"
+enabled = true
+
+[[store]]
+name    = "MC2 Saint Barth"     # beachwear (moda stagionale = saldi)
+type    = "shopify"
+domain  = "mc2saintbarth.com"
+enabled = true
+
+[[store]]
+name    = "Alessi"              # design/casa
+type    = "shopify"
+domain  = "alessi.com"
+enabled = true
+
+[[store]]
+name    = "K-Way"               # giacche (moda = saldi)
+type    = "shopify"
+domain  = "k-way.com"
+enabled = true
+
+[[store]]
+name    = "Slam Jam"            # streetwear/sneakers (folla + saldi)
+type    = "shopify"
+domain  = "slamjam.com"
+enabled = true
+
+# --- Aggiunti 2026-09-07 (casa/design, verificati con mediana prezzo) ---
+[[store]]
+name    = "Riquadro Galleria"   # arte/design, mediana ~745 EUR (scontrino alto)
+type    = "shopify"
+domain  = "riquadrogalleriadarte.it"
+enabled = true
+max_pages = 8
+
+[[store]]
+name    = "Damiano Latini"      # cucina/design, mediana ~226 EUR
+type    = "shopify"
+domain  = "damiano-latini.myshopify.com"
+enabled = true
+
+[[store]]
+name    = "ARHome"              # design casa, mediana ~100 EUR
+type    = "shopify"
+domain  = "arhome.it"
+enabled = true
+
+[[store]]
+name    = "Gioielleria Amadori" # gioielli/orologi, mediana ~88 EUR
+type    = "shopify"
+domain  = "www-gioelleria-amadori-com.myshopify.com"
+enabled = true
+
+# --- Aggiunti 2026-09-07 (streetwear/scarpe, per la soglia a 20 EUR) ---
+[[store]]
+name    = "Urbanstar"           # streetwear/sneakers, mediana ~165 EUR
+type    = "shopify"
+domain  = "urbanstar.it"
+enabled = true
+max_pages = 8
+
+[[store]]
+name    = "Little America"      # streetwear concept, mediana ~109 EUR
+type    = "shopify"
+domain  = "littleamericastore.com"
+enabled = true
+max_pages = 8
+
+[[store]]
+name    = "Sneakers Online"     # sneakers, mediana ~80 EUR
+type    = "shopify"
+domain  = "sneakersonline.it"
+enabled = true
+max_pages = 8
+
+[[store]]
+name    = "Castelli Calzature"  # scarpe/pelletteria, mediana ~164 EUR
+type    = "shopify"
+domain  = "castellicalzaturepelletteria.com"
+enabled = true
+max_pages = 8
+
+# =====================================================================
+# Aggiunti 2026-09-24 - fuori Shopify, via WooCommerce Store API o
+# JSON-LD/sitemap (schema.org Product). Ognuno verificato a mano: endpoint
+# raggiungibile e almeno un prezzo campione letto correttamente.
+# =====================================================================
+
+[[store]]
+name    = "Prodomo Tech"        # elettrodomestici (clima/lavaggio), alto scontrino
+type    = "woocommerce"
+domain  = "prodomo-tech.com"
+enabled = true
+max_pages = 8
+
+[[store]]
+name    = "Elettrodomestici Shop" # grandi elettrodomestici, alto scontrino
+type    = "woocommerce"
+domain  = "elettrodomestici.shop"
+enabled = true
+max_pages = 8
+
+[[store]]
+name    = "Mobilita Elettrica"  # e-bike/mobilita' elettrica
+type    = "woocommerce"
+domain  = "mobilita-elettrica.it"
+enabled = true
+max_pages = 8
+
+[[store]]
+name    = "Mondo Ebike"         # e-bike, mediana alta (Cannondale ~2500 EUR)
+type    = "jsonld"
+domain  = "mondoebike.it"
+enabled = true
+max_products = 100
+
+[[store]]
+name    = "Di Ruvo Bike"        # bici/e-bike
+type    = "jsonld"
+domain  = "diruvo.com"
+enabled = true
+max_products = 100
+
+[[store]]
+name    = "AK Informatica"      # hardware/informatica, mediana alta (~600 EUR)
+type    = "jsonld"
+domain  = "shop.akinformatica.it"
+enabled = true
+max_products = 100
+
+[[store]]
+name    = "Arredobagno360"      # arredo bagno/sanitari, mediana ~475 EUR
+type    = "jsonld"
+domain  = "arredobagno360.it"
+enabled = true
+max_products = 100
+
+[[store]]
+name    = "Utensileria Online"  # utensili/ferramenta professionale
+type    = "jsonld"
+domain  = "utensileriaonline.it"
+enabled = true
+max_products = 120

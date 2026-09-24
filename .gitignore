@@ -1,0 +1,7 @@
+.env
+state.json
+state.json.tmp
+monitor.log
+__pycache__/
+*.pyc
+.claude/

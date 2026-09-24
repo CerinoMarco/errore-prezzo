@@ -1,0 +1,60 @@
+name: Monitor errori di prezzo
+
+# Sostituisce il loop locale (avvia.bat / avvio_automatico.vbs): gira su
+# GitHub Actions, quindi anche a PC spento, gratis (repo pubblico = minuti
+# Actions illimitati), senza VPS. Ogni run e' un "giro solo" (--once); lo
+# stato (baseline/alerts) vive sul branch 'state', NON su 'main', cosi' il
+# codice resta pulito e lo stato non fa crescere la storia di main.
+#
+# Il vero intervallo di polling in produzione e' il cron qui sotto, non
+# poll_seconds in sources.toml (quello serve solo al loop locale).
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"   # ogni 5 minuti: il minimo pratico su GH Actions
+  workflow_dispatch: {}      # trigger manuale da tab "Actions" per i test
+
+concurrency:
+  group: price-monitor
+  cancel-in-progress: false  # mai due giri in parallelo sullo stesso stato
+
+permissions:
+  contents: write             # serve per pushare lo stato aggiornato
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout codice (main)
+        uses: actions/checkout@v4
+
+      - name: Ripristina stato precedente (branch 'state')
+        run: |
+          if git fetch origin state --depth=1 2>/dev/null; then
+            git show FETCH_HEAD:state.json > state.json
+            echo "Stato ripristinato dal branch 'state'."
+          else
+            echo "Branch 'state' non esiste ancora: primo giro, parto da stato vuoto."
+          fi
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Esegui un giro
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT: ${{ secrets.TG_CHAT }}
+        run: python price_alert.py --once
+
+      - name: Salva stato aggiornato (branch 'state')
+        if: always()
+        run: |
+          git config user.name "price-monitor-bot"
+          git config user.email "actions@users.noreply.github.com"
+          blob=$(git hash-object -w state.json)
+          tree=$(printf '100644 blob %s\tstate.json\n' "$blob" | git mktree)
+          commit=$(git commit-tree "$tree" -m "state: aggiornamento $(date -u +%Y-%m-%dT%H:%M:%SZ)")
+          git push origin "$commit:refs/heads/state" --force
