@@ -51,6 +51,10 @@ USER_AGENT = "price-alert/1.0 (personal price-error monitor)"
 HTTP_TIMEOUT = 20
 INTER_PAGE_DELAY = 0.6     # pausa educata tra pagine dello stesso store (s)
 INTER_STORE_DELAY = 4      # pausa tra un negozio e l'altro: niente raffiche (s)
+INTER_PRODUCT_DELAY = 1.2  # pausa tra pagine prodotto (jsonld): stesso IP che
+                           # bussa a decine di URL diversi sullo stesso dominio
+                           # e' il pattern che i WAF riconoscono piu' spesso
+                           # come bot, quindi qui si va piu' piano che altrove
 DEFAULT_BACKOFF = 900      # attesa base dopo un 429/403 senza Retry-After (s)
 MAX_BACKOFF = 3600         # tetto della pausa crescente (s)
 MAIL_POLL_SECONDS = 300    # ogni quanto controllare la casella del ponte email (s)
@@ -458,7 +462,7 @@ def fetch_jsonld_sitemap(store: dict, http_state: dict) -> list[Product]:
 
     out: list[Product] = []
     for url in product_urls[:max_products]:
-        time.sleep(INTER_PAGE_DELAY)
+        time.sleep(INTER_PRODUCT_DELAY)
         try:
             page = http_get_text(url, http_state)
         except NotModified:
